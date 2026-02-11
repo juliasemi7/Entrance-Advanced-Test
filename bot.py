@@ -1,4 +1,4 @@
-# bot.py - ПОЛНЫЙ БОТ ДЛЯ RAILWAY (ФИНАЛЬНАЯ ВЕРСИЯ)
+# bot.py - ПОЛНЫЙ БОТ ДЛЯ RAILWAY (ADVANCED VERSION)
 import asyncio
 import os
 import json
@@ -60,29 +60,19 @@ async def cmd_start(message: Message):
     if user_id in waiting_for_open_answer:
         del waiting_for_open_answer[user_id]
     
-    start_text = """🇬🇧 <b>ENGLISH LEVEL TEST</b>
+    start_text = """<b>Let's start!</b>
 
-📊 <b>Questions (вопросов):</b> 46
-⏰ <b>Time (время):</b> 30 minutes
+1. You are going to have <b>30 minutes</b>. The timer is at the top of the page.
 
-<b>Key pre-test information (Как проходит тест)</b>
+2. The test comprises two sections, totaling <b>53 questions</b>.
 
-🇬🇧 <b>English version:</b>
-1. You have <b>30 minutes</b> to complete the test.
-2. The test comprises two sections, totaling <b>46 questions</b>.
-3. Select the best answer or fill in the missing element.
-4. Complete the test on your own - no dictionaries, books, friends, or internet resources allowed.
-5. Please skip questions you are unsure about.
-6. At the end, you'll see your score and incorrect answers.
+3. You should complete the test on your own — ✗ no dictionaries, books, friends, or internet resources allowed. The system will track tab changes, distractions and share this info with your instructor.
 
-🇷🇺 <b>Russian version:</b>
-1. У вас есть <b>30 минут</b>, чтобы ответить на вопросы.
-2. Этот тест состоит из двух разделов и <b>46 вопросов</b>.
-3. Выберите подходящий ответ или заполните пропуск.
-4. Выполняйте тест самостоятельно, без словарей, книг, друзей или интернета.
-5. Пропускайте вопросы, вызывающие сомнения.
-6. В конце вы увидите ваш результат и вопросы с ошибками.
-"""
+4. Please skip questions you are unsure about. Guessing will distort your true level and make it difficult to find the right programme that suits your learning style and goals.
+
+5. At the end, you'll get feedback with all correct answers.
+
+🔍 <b>Let's buckle up and begin!</b>"""
     
     await message.answer(start_text, parse_mode="HTML")
     
@@ -215,9 +205,9 @@ async def process_registration_form(user_id, text, message):
         else:
             await message.answer("❌ <b>Please enter your form/age or occupation.</b>", parse_mode="HTML")
 
-# ========== ФУНКЦИЯ: ОТПРАВКА КРАТКОГО ОТЧЕТА ПРЕПОДАВАТЕЛЮ (ИСПРАВЛЕННАЯ) ==========
+# ========== ФУНКЦИЯ: ОТПРАВКА КРАТКОГО ОТЧЕТА ПРЕПОДАВАТЕЛЮ ==========
 async def send_quick_report_to_teacher(session, total_score, max_score, percentage, level, wrong_answers_count):
-    """Отправляет ВСЕ ошибки преподавателю (не только первые 5)"""
+    """Отправляет ВСЕ ошибки преподавателю"""
     try:
         student_name = session.get('name', 'Unknown')
         student_email = session.get('email', 'No email')
@@ -234,13 +224,12 @@ async def send_quick_report_to_teacher(session, total_score, max_score, percenta
 • Процент: {percentage:.1f}%
 • Уровень: {level}
 • Неверных ответов: {wrong_answers_count}
-• Вопросов отвечено: {len(session.get('all_answers', []))}/46
+• Вопросов отвечено: {len(session.get('all_answers', []))}/53
 """
         await bot.send_message(TEACHER_ID, report_msg, parse_mode="HTML")
         
         wrong_answers = session.get('wrong_answers', [])
         if wrong_answers:
-            # ПОКАЗЫВАЕМ ВСЕ ОШИБКИ ПО ОДНОЙ
             await bot.send_message(TEACHER_ID, f"❌ <b>ВСЕ НЕВЕРНЫЕ ОТВЕТЫ ({len(wrong_answers)}):</b>", parse_mode="HTML")
             
             for i, wrong in enumerate(wrong_answers, 1):
@@ -249,11 +238,9 @@ async def send_quick_report_to_teacher(session, total_score, max_score, percenta
                 user_ans = wrong.get('user_answer', 'N/A')
                 correct_ans = wrong.get('correct_answer', 'N/A')
                 
-                # Форматируем правильные ответы
                 if isinstance(correct_ans, list):
                     correct_ans = ', '.join(correct_ans)
                 
-                # Укорачиваем если слишком длинное
                 if len(q_text) > 100:
                     q_text = q_text[:97] + "..."
                 if len(correct_ans) > 100:
@@ -264,7 +251,7 @@ async def send_quick_report_to_teacher(session, total_score, max_score, percenta
                 wrong_msg += f"✓ Правильно: {correct_ans}\n"
                 
                 await bot.send_message(TEACHER_ID, wrong_msg, parse_mode="HTML")
-                await asyncio.sleep(0.2)  # Чтобы не спамить
+                await asyncio.sleep(0.2)
         
         print(f"✅ Отправлен полный отчет преподавателю: {student_name}")
         
@@ -398,59 +385,31 @@ async def ask_question(user_id):
     question = questions[q_index]
     
     if question['type'] == 'choice':
-        # ОСОБАЯ ОБРАБОТКА ДЛЯ ВОПРОСОВ 45 И 46 (индексы 44 и 45)
-        if q_index in [44, 45]:  # Вопросы 45 и 46
-            builder = InlineKeyboardBuilder()
-            
-            # Только буквы A, B, C на кнопках
-            for i in range(len(question['options'])):
+        builder = InlineKeyboardBuilder()
+        
+        for i, option in enumerate(question['options']):
+            if option and str(option).strip() and str(option).strip() != 'nan':
+                button_text = truncate_button_text(str(option).strip())
+                
                 builder.add(InlineKeyboardButton(
-                    text=f"{question['options'][i]}",  # A, B, C
+                    text=button_text,
                     callback_data=f"ans_{q_index}_{i}"
                 ))
-            
-            builder.add(InlineKeyboardButton(
-                text="⏭ Skip (пропустить)",
-                callback_data=f"skip_{q_index}"
-            ))
-            
-            builder.adjust(3, 1)  # 3 кнопки в ряд, потом skip
-            
-            await bot.send_message(
-                user_id,
-                f"<b>Question {q_index+1}/{len(questions)}</b> ({question['points']} point{'s' if question['points'] > 1 else ''})\n\n"
-                f"{question['text']}",
-                parse_mode="HTML",
-                reply_markup=builder.as_markup()
-            )
-            
-        else:
-            # Обычная обработка для остальных вопросов
-            builder = InlineKeyboardBuilder()
-            
-            for i, option in enumerate(question['options']):
-                if option and str(option).strip() and str(option).strip() != 'nan':
-                    button_text = truncate_button_text(str(option).strip())
-                    
-                    builder.add(InlineKeyboardButton(
-                        text=button_text,
-                        callback_data=f"ans_{q_index}_{i}"
-                    ))
-            
-            builder.add(InlineKeyboardButton(
-                text="⏭ Skip (пропустить)",
-                callback_data=f"skip_{q_index}"
-            ))
-            
-            builder.adjust(1)
-            
-            await bot.send_message(
-                user_id,
-                f"<b>Question {q_index+1}/{len(questions)}</b> ({question['points']} point{'s' if question['points'] > 1 else ''})\n\n"
-                f"{question['text']}",
-                reply_markup=builder.as_markup(),
-                parse_mode="HTML"
-            )
+        
+        builder.add(InlineKeyboardButton(
+            text="⏭ Skip (пропустить)",
+            callback_data=f"skip_{q_index}"
+        ))
+        
+        builder.adjust(1)
+        
+        await bot.send_message(
+            user_id,
+            f"<b>Question {q_index+1}/{len(questions)}</b> ({question['points']} point{'s' if question['points'] > 1 else ''})\n\n"
+            f"{question['text']}",
+            reply_markup=builder.as_markup(),
+            parse_mode="HTML"
+        )
     
     else:
         waiting_for_open_answer[user_id] = q_index
@@ -624,18 +583,15 @@ async def cmd_results(message: Message):
         return
     
     try:
-        # Пробуем загрузить детальные результаты
         if os.path.exists('detailed_answers.json'):
             with open('detailed_answers.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
             if data:
-                # Статистика
                 stats_text = f"👩‍🏫 <b>TEACHER DASHBOARD</b>\n\n"
                 stats_text += f"📊 <b>Всего тестов:</b> {len(data)}\n\n"
                 stats_text += f"📋 <b>Все студенты:</b>\n"
                 
-                # Список всех учеников
                 for i, test in enumerate(data, 1):
                     name = test.get('name', f'Student {i}')
                     score = test.get('score', 0)
@@ -647,7 +603,6 @@ async def cmd_results(message: Message):
                 
                 await message.answer(stats_text, parse_mode="HTML")
                 
-                # ИНЛАЙН-КНОПКИ ДЛЯ ВЫБОРА УЧЕНИКА
                 builder = InlineKeyboardBuilder()
                 
                 for i, test in enumerate(data):
@@ -655,10 +610,8 @@ async def cmd_results(message: Message):
                     score = test.get('score', 0)
                     max_score = test.get('max_score', 67)
                     
-                    # Создаем текст для кнопки
                     button_text = f"{i+1}. {name} - {score}/{max_score}"
                     
-                    # Обрезаем если слишком длинный
                     if len(button_text) > 40:
                         short_name = name[:15] + "..." if len(name) > 15 else name
                         button_text = f"{i+1}. {short_name} - {score}/{max_score}"
@@ -668,7 +621,6 @@ async def cmd_results(message: Message):
                         callback_data=f"view_details_{i}"
                     ))
                 
-                # Вертикальный список (1 кнопка на строку)
                 builder.adjust(1)
                 
                 await message.answer(
@@ -677,48 +629,17 @@ async def cmd_results(message: Message):
                     reply_markup=builder.as_markup()
                 )
                 
-                # Также отправляем CSV файл
                 if os.path.exists('results.csv'):
                     csv_file = FSInputFile('results.csv')
                     await message.answer_document(csv_file, caption="📊 CSV файл со всеми результатами")
                 
             else:
-                await message.answer("📭 <b>Нет данных о тестах в JSON файле.</b>", parse_mode="HTML")
-                
-        elif os.path.exists('results.csv'):
-            # Если есть только CSV файл
-            with open('results.csv', 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                rows = list(reader)
-            
-            if len(rows) > 1:
-                total_tests = len(rows) - 1
-                stats_text = f"👩‍🏫 <b>TEACHER DASHBOARD</b>\n\n"
-                stats_text += f"📊 <b>Всего тестов:</b> {total_tests}\n\n"
-                
-                for i, row in enumerate(rows[1:], 1):
-                    if len(row) >= 11:
-                        name = row[3] if row[3] else f"Student {i}"
-                        score = row[7] if len(row) > 7 else "0"
-                        max_score = row[8] if len(row) > 8 else "67"
-                        percentage = row[9] if len(row) > 9 else "0%"
-                        
-                        stats_text += f"{i}. <b>{name}</b> - {score}/{max_score} ({percentage})\n"
-                
-                await message.answer(stats_text, parse_mode="HTML")
-                
-                csv_file = FSInputFile('results.csv')
-                await message.answer_document(csv_file, caption="📊 CSV файл со всеми результатами")
-                
-            else:
-                await message.answer("📭 <b>CSV файл есть, но нет результатов тестов.</b>", parse_mode="HTML")
-                
+                await message.answer("📭 <b>Нет данных о тестах.</b>", parse_mode="HTML")
         else:
-            await message.answer("📭 <b>Нет результатов тестов.</b>", parse_mode="HTML")
+            await message.answer("📭 <b>Файл с результатами не найден.</b>", parse_mode="HTML")
             
     except Exception as e:
-        error_msg = str(e)[:200]
-        await message.answer(f"❌ Ошибка: {error_msg}")
+        await message.answer(f"❌ Ошибка: {str(e)}")
 
 # ========== ОБРАБОТКА КНОПОК ВЫБОРА УЧЕНИКА ==========
 @dp.callback_query(lambda c: c.data.startswith('view_details_'))
@@ -732,16 +653,14 @@ async def view_student_details(callback: CallbackQuery):
     try:
         test_index = int(callback.data.split('_')[2])
         
-        if os.path.exists('detailed_answers.json'):
-            with open('detailed_answers.json', 'r', encoding='utf-8') as f:
-                data = json.load(f)
+        with open('detailed_answers.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        if 0 <= test_index < len(data):
+            test_data = data[test_index]
+            student_name = test_data.get('name', f'Student {test_index+1}')
             
-            if 0 <= test_index < len(data):
-                test_data = data[test_index]
-                student_name = test_data.get('name', f'Student {test_index+1}')
-                
-                # ОСНОВНАЯ ИНФОРМАЦИЯ
-                info_msg = f"""👨‍🎓 <b>ПОЛНЫЙ ОТЧЕТ - {student_name}</b>
+            info_msg = f"""👨‍🎓 <b>ПОЛНЫЙ ОТЧЕТ - {student_name}</b>
 
 📌 <b>Информация о студенте:</b>
 • Имя: {student_name}
@@ -753,67 +672,60 @@ async def view_student_details(callback: CallbackQuery):
 • Баллы: {test_data.get('score', 0)}/{test_data.get('max_score', 67)}
 • Процент: {test_data.get('percentage', 0):.1f}%
 • Уровень: {test_data.get('level', 'Unknown')}
-• Вопросов отвечено: {len(test_data.get('all_answers', []))}/46
+• Вопросов отвечено: {len(test_data.get('all_answers', []))}/53
 • Неверных ответов: {len(test_data.get('wrong_answers', []))}
 • Завершено: {'⏰ Время вышло' if test_data.get('time_up') else '✅ Да'}
 """
-                await callback.message.answer(info_msg, parse_mode="HTML")
+            await callback.message.answer(info_msg, parse_mode="HTML")
+            
+            all_answers = test_data.get('all_answers', [])
+            if all_answers:
+                await callback.message.answer(f"📝 <b>ВСЕ ОТВЕТЫ ({len(all_answers)}):</b>", parse_mode="HTML")
                 
-                # ВСЕ ОТВЕТЫ
-                all_answers = test_data.get('all_answers', [])
-                if all_answers:
-                    await callback.message.answer(f"📝 <b>ВСЕ ОТВЕТЫ ({len(all_answers)}):</b>", parse_mode="HTML")
+                for i in range(0, len(all_answers), 10):
+                    batch = all_answers[i:i+10]
+                    batch_text = ""
                     
-                    # Группируем по 10 для читаемости
-                    for i in range(0, len(all_answers), 10):
-                        batch = all_answers[i:i+10]
-                        batch_text = ""
+                    for answer in batch:
+                        q_num = answer.get('question_number', '?')
+                        user_ans = answer.get('user_answer', 'N/A')
+                        status = "✅" if answer.get('is_correct') else "❌"
                         
-                        for answer in batch:
-                            q_num = answer.get('question_number', '?')
-                            user_ans = answer.get('user_answer', 'N/A')
-                            status = "✅" if answer.get('is_correct') else "❌"
-                            
-                            batch_text += f"<b>{q_num}.</b> {user_ans} {status}\n"
-                        
-                        if batch_text:
-                            await callback.message.answer(batch_text, parse_mode="HTML")
-                            await asyncio.sleep(0.2)
-                
-                # НЕВЕРНЫЕ ОТВЕТЫ (если есть)
-                wrong_answers = test_data.get('wrong_answers', [])
-                if wrong_answers:
-                    await callback.message.answer(f"❌ <b>НЕВЕРНЫЕ ОТВЕТЫ ({len(wrong_answers)}):</b>", parse_mode="HTML")
+                        batch_text += f"<b>{q_num}.</b> {user_ans} {status}\n"
                     
-                    for wrong in wrong_answers:
-                        q_num = wrong.get('question_number', '?')
-                        q_text = wrong.get('question_text', '')
-                        user_ans = wrong.get('user_answer', 'N/A')
-                        correct_ans = wrong.get('correct_answer', 'N/A')
-                        
-                        if isinstance(correct_ans, list):
-                            correct_ans = ', '.join(correct_ans)
-                        
-                        # Укорачиваем текст
-                        if len(q_text) > 80:
-                            q_text = q_text[:77] + "..."
-                        
-                        wrong_text = f"<b>{q_num}.</b> {q_text}\n"
-                        wrong_text += f"✗ Студент: <i>{user_ans}</i>\n"
-                        wrong_text += f"✓ Правильно: {correct_ans}\n"
-                        
-                        await callback.message.answer(wrong_text, parse_mode="HTML")
+                    if batch_text:
+                        await callback.message.answer(batch_text, parse_mode="HTML")
                         await asyncio.sleep(0.2)
+            
+            wrong_answers = test_data.get('wrong_answers', [])
+            if wrong_answers:
+                await callback.message.answer(f"❌ <b>НЕВЕРНЫЕ ОТВЕТЫ ({len(wrong_answers)}):</b>", parse_mode="HTML")
                 
-                await callback.answer(f"Показаны данные {student_name}")
-            else:
-                await callback.answer(f"Студент не найден (индекс {test_index})")
+                for wrong in wrong_answers:
+                    q_num = wrong.get('question_number', '?')
+                    q_text = wrong.get('question_text', '')
+                    user_ans = wrong.get('user_answer', 'N/A')
+                    correct_ans = wrong.get('correct_answer', 'N/A')
+                    
+                    if isinstance(correct_ans, list):
+                        correct_ans = ', '.join(correct_ans)
+                    
+                    if len(q_text) > 80:
+                        q_text = q_text[:77] + "..."
+                    
+                    wrong_text = f"<b>{q_num}.</b> {q_text}\n"
+                    wrong_text += f"✗ Студент: <i>{user_ans}</i>\n"
+                    wrong_text += f"✓ Правильно: {correct_ans}\n"
+                    
+                    await callback.message.answer(wrong_text, parse_mode="HTML")
+                    await asyncio.sleep(0.2)
+            
+            await callback.answer(f"Показаны данные {student_name}")
         else:
-            await callback.answer("Файл с данными не найден")
+            await callback.answer(f"Студент не найден")
             
     except Exception as e:
-        error_msg = str(e)[:100]
-        await callback.answer(f"Ошибка: {error_msg}")
+        await callback.answer(f"Ошибка: {str(e)[:50]}")
 
 # ========== ДРУГИЕ КОМАНДЫ ==========
 @dp.message(Command("help"))
@@ -902,18 +814,19 @@ async def finish_test(user_id, time_up=False):
     percentage = (total_score / max_score * 100) if max_score > 0 else 0
     
     # Уровень
-    if total_score >= 57:
+    if total_score >= 90:
+        level = "Advanced"
+    elif total_score >= 75:
         level = "Upper-Intermediate"
-    elif total_score >= 40:
+    elif total_score >= 60:
         level = "Intermediate"
-    elif total_score >= 23:
+    elif total_score >= 40:
         level = "Pre-Intermediate"
-    elif total_score >= 7:
-        level = "Elementary"
     else:
-        level = "Starter"
+        level = "Elementary"
     
     session["level"] = level
+    session["max_score"] = max_score
     
     # Результаты для ученика
     result_text = f"""📊 <b>TEST COMPLETED</b>
@@ -958,16 +871,15 @@ async def finish_test(user_id, time_up=False):
     # Сохраняем результаты
     await save_results(session, total_score, max_score, percentage, level, time_up)
     
-    # Отправляем полный отчет преподавателю (ВСЕ ошибки)
+    # Отправляем отчет преподавателю
     await send_quick_report_to_teacher(session, total_score, max_score, percentage, level, len(wrong_answers))
     
     # Очищаем сессию
     del user_sessions[user_id]
 
-# ========== СОХРАНЕНИЕ РЕЗУЛЬТАТОВ (с JSON) ==========
+# ========== СОХРАНЕНИЕ РЕЗУЛЬТАТОВ ==========
 async def save_results(session, score, max_score, percentage, level, time_up):
     try:
-        # 1. CSV файл
         csv_file = 'results.csv'
         file_exists = os.path.exists(csv_file)
         
@@ -998,7 +910,7 @@ async def save_results(session, score, max_score, percentage, level, time_up):
                 len(session.get('wrong_answers', []))
             ])
         
-        # 2. JSON файл со всеми деталями (для кнопок выбора)
+        json_file = 'detailed_answers.json'
         detailed_data = {
             'timestamp': datetime.now().isoformat(),
             'user_id': session['user_id'],
@@ -1018,7 +930,6 @@ async def save_results(session, score, max_score, percentage, level, time_up):
             'wrong_answers': session.get('wrong_answers', [])
         }
         
-        json_file = 'detailed_answers.json'
         if os.path.exists(json_file):
             with open(json_file, 'r', encoding='utf-8') as f:
                 all_data = json.load(f)
@@ -1037,19 +948,16 @@ async def save_results(session, score, max_score, percentage, level, time_up):
 
 # ========== ЗАПУСК БОТА ==========
 async def main():
-    # УДАЛЯЕМ вебхук перед запуском polling
     await bot.delete_webhook(drop_pending_updates=True)
     print("✅ Вебхук удалён")
     
     print("=" * 60)
-    print("🤖 ENGLISH TEST BOT - RAILWAY VERSION (ФИНАЛЬНАЯ)")
+    print("🤖 ENGLISH TEST BOT - ADVANCED VERSION")
     print("=" * 60)
     print(f"✅ Questions: {len(questions)}")
     print(f"✅ Teacher ID: {TEACHER_ID}")
     print("=" * 60)
     print("🎯 Бот работает 24/7 на Railway!")
-    print("✅ Учителю приходят ВСЕ ошибки")
-    print("✅ Кнопки выбора учеников в /results")
     print("=" * 60)
     
     try:
