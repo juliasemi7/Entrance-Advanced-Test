@@ -54,7 +54,6 @@ def get_start_keyboard():
 async def cmd_start(message: Message):
     user_id = message.from_user.id
     
-    # Очищаем предыдущее состояние
     if user_id in user_form_step:
         del user_form_step[user_id]
     if user_id in waiting_for_open_answer:
@@ -76,7 +75,6 @@ async def cmd_start(message: Message):
     
     await message.answer(start_text, parse_mode="HTML")
     
-    # Начинаем регистрацию
     user_form_step[user_id] = 'name'
     
     await message.answer(
@@ -91,7 +89,6 @@ async def process_all_messages(message: Message):
     user_id = message.from_user.id
     text = message.text.strip()
     
-    # Обработка команд
     if text == "/help":
         await cmd_help(message)
         return
@@ -105,12 +102,10 @@ async def process_all_messages(message: Message):
         await cmd_results(message)
         return
     
-    # Если пользователь заполняет форму
     if user_id in user_form_step:
         await process_registration_form(user_id, text, message)
         return
     
-    # Если ждем открытый ответ
     if user_id in waiting_for_open_answer:
         await process_open_answer(user_id, text)
         return
@@ -207,7 +202,6 @@ async def process_registration_form(user_id, text, message):
 
 # ========== ФУНКЦИЯ: ОТПРАВКА КРАТКОГО ОТЧЕТА ПРЕПОДАВАТЕЛЮ ==========
 async def send_quick_report_to_teacher(session, total_score, max_score, percentage, level, wrong_answers_count):
-    """Отправляет ВСЕ ошибки преподавателю"""
     try:
         student_name = session.get('name', 'Unknown')
         student_email = session.get('email', 'No email')
@@ -232,7 +226,7 @@ async def send_quick_report_to_teacher(session, total_score, max_score, percenta
         if wrong_answers:
             await bot.send_message(TEACHER_ID, f"❌ <b>ВСЕ НЕВЕРНЫЕ ОТВЕТЫ ({len(wrong_answers)}):</b>", parse_mode="HTML")
             
-            for i, wrong in enumerate(wrong_answers, 1):
+            for wrong in wrong_answers:
                 q_num = wrong.get('question_number', '?')
                 q_text = wrong.get('question_text', '')
                 user_ans = wrong.get('user_answer', 'N/A')
@@ -317,23 +311,19 @@ async def start_test_from_button(callback: types.CallbackQuery):
     
     await callback.answer("Starting test...")
     
-    # Проверка активного теста
     if user_id in user_sessions:
         await callback.message.answer("⚠️ You already have an active test! Use /time or /cancel")
         return
     
-    # Проверка регистрации
     if user_id not in user_contact_info:
         await callback.message.answer("❌ Please complete registration first with /start")
         return
     
-    # Очищаем состояние
     if user_id in user_form_step:
         del user_form_step[user_id]
     if user_id in waiting_for_open_answer:
         del waiting_for_open_answer[user_id]
     
-    # Создаем сессию теста
     contact_info = user_contact_info[user_id]
     
     user_sessions[user_id] = {
@@ -353,11 +343,9 @@ async def start_test_from_button(callback: types.CallbackQuery):
         "wrong_answers": []
     }
     
-    # Запускаем таймер
     timer_task = asyncio.create_task(test_timer(user_id))
     user_timers[user_id] = timer_task
     
-    # Показываем таймер сразу
     await show_timer(user_id, force_show=True)
     
     await callback.message.answer(
@@ -385,32 +373,60 @@ async def ask_question(user_id):
     question = questions[q_index]
     
     if question['type'] == 'choice':
-        builder = InlineKeyboardBuilder()
-        
-        for i, option in enumerate(question['options']):
-            if option and str(option).strip() and str(option).strip() != 'nan':
-                button_text = truncate_button_text(str(option).strip())
-                
+        # === ВОПРОС 53 (ИНДЕКС 52) - КНОПКИ С БУКВАМИ ===
+        if q_index == 52:
+            builder = InlineKeyboardBuilder()
+            
+            for i in range(len(question['options'])):
                 builder.add(InlineKeyboardButton(
-                    text=button_text,
+                    text=f"{question['options'][i]}",  # A, B, C
                     callback_data=f"ans_{q_index}_{i}"
                 ))
+            
+            builder.add(InlineKeyboardButton(
+                text="⏭ Skip (пропустить)",
+                callback_data=f"skip_{q_index}"
+            ))
+            
+            builder.adjust(3, 1)
+            
+            await bot.send_message(
+                user_id,
+                f"<b>Question {q_index+1}/{len(questions)}</b> ({question['points']} point{'s' if question['points'] > 1 else ''})\n\n"
+                f"{question['text']}",
+                parse_mode="HTML",
+                reply_markup=builder.as_markup()
+            )
         
-        builder.add(InlineKeyboardButton(
-            text="⏭ Skip (пропустить)",
-            callback_data=f"skip_{q_index}"
-        ))
-        
-        builder.adjust(1)
-        
-        await bot.send_message(
-            user_id,
-            f"<b>Question {q_index+1}/{len(questions)}</b> ({question['points']} point{'s' if question['points'] > 1 else ''})\n\n"
-            f"{question['text']}",
-            reply_markup=builder.as_markup(),
-            parse_mode="HTML"
-        )
+        # === ВСЕ ОСТАЛЬНЫЕ CHOICE ВОПРОСЫ ===
+        else:
+            builder = InlineKeyboardBuilder()
+            
+            for i, option in enumerate(question['options']):
+                if option and str(option).strip() and str(option).strip() != 'nan':
+                    button_text = truncate_button_text(str(option).strip())
+                    
+                    builder.add(InlineKeyboardButton(
+                        text=button_text,
+                        callback_data=f"ans_{q_index}_{i}"
+                    ))
+            
+            builder.add(InlineKeyboardButton(
+                text="⏭ Skip (пропустить)",
+                callback_data=f"skip_{q_index}"
+            ))
+            
+            builder.adjust(1)
+            
+            await bot.send_message(
+                user_id,
+                f"<b>Question {q_index+1}/{len(questions)}</b> ({question['points']} point{'s' if question['points'] > 1 else ''})\n\n"
+                f"{question['text']}",
+                reply_markup=builder.as_markup(),
+                parse_mode="HTML"
+            )
     
+    # === ОТКРЫТЫЕ ВОПРОСЫ ===
     else:
         waiting_for_open_answer[user_id] = q_index
         
@@ -434,7 +450,6 @@ async def process_answer(callback: types.CallbackQuery):
     session = user_sessions[user_id]
     q_index = session["current_question"]
     
-    # Пропуск вопроса
     if callback.data.startswith('skip_'):
         await callback.answer("")
         
@@ -461,7 +476,6 @@ async def process_answer(callback: types.CallbackQuery):
         await ask_question(user_id)
         return
     
-    # Выбор ответа
     if callback.data.startswith('ans_'):
         parts = callback.data.split('_')
         question_idx = int(parts[1])
@@ -573,7 +587,7 @@ async def process_open_answer(user_id, text):
     await show_timer(user_id)
     await ask_question(user_id)
 
-# ========== КОМАНДА /RESULTS С КНОПКАМИ ВЫБОРА УЧЕНИКА ==========
+# ========== КОМАНДА /RESULTS ==========
 @dp.message(Command("results"))
 async def cmd_results(message: Message):
     user_id = message.from_user.id
@@ -808,12 +822,10 @@ async def finish_test(user_id, time_up=False):
         except:
             pass
     
-    # Подсчет результатов
     total_score = session["score"]
     max_score = sum(q['points'] for q in questions)
     percentage = (total_score / max_score * 100) if max_score > 0 else 0
     
-    # Уровень
     if total_score >= 90:
         level = "Advanced"
     elif total_score >= 75:
@@ -828,7 +840,6 @@ async def finish_test(user_id, time_up=False):
     session["level"] = level
     session["max_score"] = max_score
     
-    # Результаты для ученика
     result_text = f"""📊 <b>TEST COMPLETED</b>
 
 • Score: <b>{total_score}/{max_score}</b> points
@@ -843,7 +854,6 @@ async def finish_test(user_id, time_up=False):
     
     await bot.send_message(user_id, result_text, parse_mode="HTML")
     
-    # Показываем ошибки ученику
     wrong_answers = session.get("wrong_answers", [])
     if wrong_answers:
         await bot.send_message(user_id, f"📝 <b>Questions with incorrect answers ({len(wrong_answers)}):</b>", parse_mode="HTML")
@@ -868,13 +878,9 @@ async def finish_test(user_id, time_up=False):
                 await bot.send_message(user_id, batch_text, parse_mode="HTML")
                 await asyncio.sleep(0.3)
     
-    # Сохраняем результаты
     await save_results(session, total_score, max_score, percentage, level, time_up)
-    
-    # Отправляем отчет преподавателю
     await send_quick_report_to_teacher(session, total_score, max_score, percentage, level, len(wrong_answers))
     
-    # Очищаем сессию
     del user_sessions[user_id]
 
 # ========== СОХРАНЕНИЕ РЕЗУЛЬТАТОВ ==========
