@@ -55,7 +55,10 @@ questions = [
     {'id': 50, 'type': 'choice', 'text': '"Director ______" Philip Bosman has resigned from his £150,000 job at Presco after the company announced a loss of £2.6 million in its annual report.', 'options': ['fires', 'crashes', 'quits', 'strikes'], 'correct': 'C', 'points': 1},
     {'id': 51, 'type': 'choice', 'text': '"The President ______ the plan." The President has given his support to a plan which aims to reduce the number of drug-abusers.', 'options': ['backs', 'hits', 'smashes', 'drives'], 'correct': 'A', 'points': 1},
     {'id': 52, 'type': 'choice', 'text': '"Festival ______" There were angry scenes at the meeting last night between organizers of a music festival and local residents who do not want it to take place.', 'options': ['scare', 'row', 'tragedy', 'rubbish'], 'correct': 'B', 'points': 1},
-    {'id': 53, 'type': 'choice', 'text': 'Best summary for the extract about Allan Nicks is:', 'options': ['"I\'m glad I gave up working as a scientist because I\'m now in a position to retire early."', '"Now I\'ve reached fifty I realize the dangers involved in filming wildlife are great."', '"Although I find the work more difficult now I\'m not as young, I still have film projects I want to do."'], 'correct': 'C', 'points': 2},
+{'id': 53, 'type': 'choice', 'text': '"Allan Nicks: That\'s my world"\n\n"I recently spent two years in the Arctic filming the series Blue Planet. When I\'m filming, I like to really feel how lonely the environment is. I prefer to be face to face with the animals I\'m filming. I haven\'t got in the water with killer whales yet, but I plan to. Of course it\'s dangerous if you choose the wrong moment.\n\nOriginally I was a researcher, but for me science lacked excitement. I was able to move into filming in 2005 and have concentrated on wildlife ever since.\n\nWhen I come back home from my trips, I work in the mornings and spend the afternoons swimming to keep fit. Now I\'m fifty, filming is harder. The challenge for me is to continue to deliver high-quality work."\n\nBest summary for the extract is:\n\nA) "I\'m glad I gave up working as a scientist because I\'m now in a position to retire early."\nB) "Now I\'ve reached fifty I realize the dangers involved in filming wildlife are great."\nC) "Although I find the work more difficult now I\'m not as young, I still have film projects I want to do."', 
+'options': ['A', 'B', 'C'], 
+'correct': 'C', 
+'points': 2},
 ]
 
 print(f"✅ Loaded {len(questions)} questions:")
@@ -63,4 +66,5 @@ grammar = len([q for q in questions if q['id'] <= 27])
 vocab = len([q for q in questions if q['id'] >= 28])
 print(f"   • Grammar: {grammar} questions")
 print(f"   • Vocabulary: {vocab} questions")
+
 print(f"   • Total points: {sum(q['points'] for q in questions)}")
