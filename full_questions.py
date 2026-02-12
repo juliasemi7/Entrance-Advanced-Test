@@ -9,12 +9,12 @@ questions = [
     {'id': 6, 'type': 'choice', 'text': 'Tom needed ______ information so he surfed the Internet.', 'options': ['-', 'any', 'an', 'any of'], 'correct': 'A', 'points': 1},
     {'id': 7, 'type': 'choice', 'text': 'She missed her flight in the end, ______ she?', 'options': ["hadn't", "didn't", "wasn't", "hasn't"], 'correct': 'B', 'points': 1},
     {'id': 8, 'type': 'choice', 'text': 'If you travel within the European Union you ______ carry a passport, as an identity card is accepted there.', 'options': ["mustn't", "haven't to", "shouldn't", "don't have to"], 'correct': 'D', 'points': 1},
-    {'id': 9, 'type': 'open', 'text': 'Это самый плохой день в моей жизни! This is ______ day of my life.', 'correct_answers': ['the worst'], 'points': 1},
-    {'id': 10, 'type': 'open', 'text': 'Этот автомобиль был изготовлен в прошлом году. This car __________ last year.', 'correct_answers': ['was made', 'was manufactured', 'was produced'], 'points': 1},
+    {'id': 9, 'type': 'open', 'text': 'Это самый плохой день в моей жизни! This is ______ day of my life.', 'correct_answers': ['the worst'], 'points': 2},
+    {'id': 10, 'type': 'open', 'text': 'Этот автомобиль был изготовлен в прошлом году. This car __________ last year.', 'correct_answers': ['was made', 'was manufactured', 'was produced'], 'points': 2},
     {'id': 11, 'type': 'choice', 'text': 'It smells nice. She must ______ something very delicious.', 'options': ['cook', 'cooking', 'be cooking', 'been cooking'], 'correct': 'C', 'points': 2},
     {'id': 12, 'type': 'choice', 'text': 'I wish I ______ more free time these days! I really need a break.', 'options': ['have', 'had', 'have had', 'had had'], 'correct': 'B', 'points': 2},
-    {'id': 13, 'type': 'choice', 'text': 'When he was young, he ______ his summer holidays in the country.', 'options': ['had spent', 'used to spend', 'used to spent', 'used to have spent'], 'correct': 'B', 'points': 1},
-    {'id': 14, 'type': 'choice', 'text': 'By next June, the new road ______.', 'options': ['is built', 'will been built', 'will have been built', 'is being built'], 'correct': 'C', 'points': 1},
+    {'id': 13, 'type': 'choice', 'text': 'When he was young, he ______ his summer holidays in the country.', 'options': ['had spent', 'used to spend', 'used to spent', 'used to have spent'], 'correct': 'B', 'points': 2},
+    {'id': 14, 'type': 'choice', 'text': 'By next June, the new road ______.', 'options': ['is built', 'will been built', 'will have been built', 'is being built'], 'correct': 'C', 'points': 2},
     {'id': 15, 'type': 'choice', 'text': 'Luggage ______ to be collected in the luggage reclaim area.', 'options': ['must', 'should', 'is', 'will'], 'correct': 'C', 'points': 2},
     {'id': 16, 'type': 'choice', 'text': 'The residents were made ________ their homes by the authorities.', 'options': ['to leave', 'left', 'to have left', 'have left'], 'correct': 'A', 'points': 2},
     {'id': 17, 'type': 'open', 'text': 'Её родители не хотят, чтобы она выходила замуж. Her parents don\'t want ________ get married.', 'correct_answers': ['her to'], 'points': 2},
@@ -24,8 +24,8 @@ questions = [
     {'id': 21, 'type': 'choice', 'text': 'If he sticks to this bad habit, he risks ______ all his money.', 'options': ['to lose', 'of losing', 'losing', 'lose'], 'correct': 'C', 'points': 3},
     {'id': 22, 'type': 'choice', 'text': 'Before signing the contract you should ______ by a lawyer.', 'options': ['get it checked', 'get checked it', 'checked it', 'get checked'], 'correct': 'A', 'points': 3},
     {'id': 23, 'type': 'choice', 'text': 'If you ______ the test, you would have been offered a job in our company. I\'m sorry, but you didn\'t.', 'options': ['had passed', 'passed', 'would have passed', 'have passed'], 'correct': 'A', 'points': 3},
-    {'id': 24, 'type': 'choice', 'text': 'Mary is tired. She ______ for her exam all night.', 'options': ['is preparing', 'has prepared', 'has been preparing', 'is being prepared'], 'correct': 'C', 'points': 1},
-    {'id': 25, 'type': 'choice', 'text': 'Coca Cola ______ for more than a century, and it is still a very popular drink.', 'options': ['is produced', 'is been producing', 'has been produced', 'has produced'], 'correct': 'C', 'points': 1},
+    {'id': 24, 'type': 'choice', 'text': 'Mary is tired. She ______ for her exam all night.', 'options': ['is preparing', 'has prepared', 'has been preparing', 'is being prepared'], 'correct': 'C', 'points': 2},
+    {'id': 25, 'type': 'choice', 'text': 'Coca Cola ______ for more than a century, and it is still a very popular drink.', 'options': ['is produced', 'is been producing', 'has been produced', 'has produced'], 'correct': 'C', 'points': 2},
     {'id': 26, 'type': 'choice', 'text': 'The criminal ______, and that\'s why the police weren\'t searching for him.', 'options': ['is thought to be arrested', 'is thought to have been arrested', 'was thought to have been arrested', 'was thought he was arrested'], 'correct': 'C', 'points': 2},
     {'id': 27, 'type': 'choice', 'text': 'I feel terrible that I didn\'t bring him a present! I should ______ him something.', 'options': ['bought', 'have been bought', 'have been buying', 'have bought'], 'correct': 'D', 'points': 2},
 
@@ -55,10 +55,10 @@ questions = [
     {'id': 50, 'type': 'choice', 'text': '"Director ______" Philip Bosman has resigned from his £150,000 job at Presco after the company announced a loss of £2.6 million in its annual report.', 'options': ['fires', 'crashes', 'quits', 'strikes'], 'correct': 'C', 'points': 1},
     {'id': 51, 'type': 'choice', 'text': '"The President ______ the plan." The President has given his support to a plan which aims to reduce the number of drug-abusers.', 'options': ['backs', 'hits', 'smashes', 'drives'], 'correct': 'A', 'points': 1},
     {'id': 52, 'type': 'choice', 'text': '"Festival ______" There were angry scenes at the meeting last night between organizers of a music festival and local residents who do not want it to take place.', 'options': ['scare', 'row', 'tragedy', 'rubbish'], 'correct': 'B', 'points': 1},
-{'id': 53, 'type': 'choice', 'text': '"Allan Nicks: That\'s my world"\n\n"I recently spent two years in the Arctic filming the series Blue Planet. When I\'m filming, I like to really feel how lonely the environment is. I prefer to be face to face with the animals I\'m filming. I haven\'t got in the water with killer whales yet, but I plan to. Of course it\'s dangerous if you choose the wrong moment.\n\nOriginally I was a researcher, but for me science lacked excitement. I was able to move into filming in 2005 and have concentrated on wildlife ever since.\n\nWhen I come back home from my trips, I work in the mornings and spend the afternoons swimming to keep fit. Now I\'m fifty, filming is harder. The challenge for me is to continue to deliver high-quality work."\n\nBest summary for the extract is:\n\nA) "I\'m glad I gave up working as a scientist because I\'m now in a position to retire early."\nB) "Now I\'ve reached fifty I realize the dangers involved in filming wildlife are great."\nC) "Although I find the work more difficult now I\'m not as young, I still have film projects I want to do."', 
-'options': ['A', 'B', 'C'], 
-'correct': 'C', 
-'points': 2},
+    {'id': 53, 'type': 'choice', 'text': '"Allan Nicks: That\'s my world"\n\n"I recently spent two years in the Arctic filming the series Blue Planet. When I\'m filming, I like to really feel how lonely the environment is. I prefer to be face to face with the animals I\'m filming. I haven\'t got in the water with killer whales yet, but I plan to. Of course it\'s dangerous if you choose the wrong moment.\n\nOriginally I was a researcher, but for me science lacked excitement. I was able to move into filming in 2005 and have concentrated on wildlife ever since.\n\nWhen I come back home from my trips, I work in the mornings and spend the afternoons swimming to keep fit. Now I\'m fifty, filming is harder. The challenge for me is to continue to deliver high-quality work."\n\nBest summary for the extract is:\n\nA) "I\'m glad I gave up working as a scientist because I\'m now in a position to retire early."\nB) "Now I\'ve reached fifty I realize the dangers involved in filming wildlife are great."\nC) "Although I find the work more difficult now I\'m not as young, I still have film projects I want to do."', 
+    'options': ['A', 'B', 'C'], 
+    'correct': 'C', 
+    'points': 2},
 ]
 
 print(f"✅ Loaded {len(questions)} questions:")
@@ -66,5 +66,4 @@ grammar = len([q for q in questions if q['id'] <= 27])
 vocab = len([q for q in questions if q['id'] >= 28])
 print(f"   • Grammar: {grammar} questions")
 print(f"   • Vocabulary: {vocab} questions")
-
 print(f"   • Total points: {sum(q['points'] for q in questions)}")
