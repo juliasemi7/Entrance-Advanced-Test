@@ -62,15 +62,13 @@ async def cmd_start(message: Message):
     
     start_text = """<b>Let's start!</b>
 
-1. You are going to have <b>30 minutes</b>. The timer is at the top of the page.
+1. Choose the best option or complete a line with a word or a phrase. Text answers should be entered without additional spaces and extra characters.
 
-2. The test comprises two sections, totaling <b>53 questions</b>.
+2. The test is taken with no dictionaries, books, friends and without any Internet resources. Please do not switch to other tabs during the test. The system monitors any tab switches, loss of visual contact (distraction by other devices), and notifies the instructor of their frequency after completing the test.
 
-3. You should complete the test on your own — ✗ no dictionaries, books, friends, or internet resources allowed. The system will track tab changes, distractions and share this info with your instructor.
+3. Those questions which seem too difficult should be skipped or marked as "Skip the question".
 
-4. Please skip questions you are unsure about. Guessing will distort your true level and make it difficult to find the right programme that suits your learning style and goals.
-
-5. At the end, you'll get feedback with all correct answers.
+4. You have <b>30 minutes</b> to complete the test. Please, pay attention to the timer.
 
 🔍 <b>Let's buckle up and begin!</b>"""
     
@@ -97,7 +95,7 @@ async def cmd_help(message: Message):
         "🔹 /help - показать это сообщение\n\n"
         "⏱️ <b>Время на тест:</b> 30 минут\n"
         "📊 <b>Количество вопросов:</b> 53\n"
-        "🏆 <b>Уровни:</b> Elementary → Advanced"
+        "🏆 <b>Уровни:</b> Pre-Intermediate → Proficiency"
     )
     await message.answer(help_text, parse_mode="HTML")
     print(f"ℹ️ Help показан пользователю {message.from_user.id}")
@@ -166,7 +164,7 @@ async def cmd_results(message: Message):
                 for i, test in enumerate(data, 1):
                     name = test.get('name', f'Student {i}')
                     score = test.get('score', 0)
-                    max_score = test.get('max_score', sum(q['points'] for q in questions))
+                    max_score = 81
                     percentage = test.get('percentage', 0)
                     level = test.get('level', 'Unknown')
                     
@@ -179,7 +177,7 @@ async def cmd_results(message: Message):
                 for i, test in enumerate(data):
                     name = test.get('name', f'Student {i+1}')
                     score = test.get('score', 0)
-                    max_score = test.get('max_score', sum(q['points'] for q in questions))
+                    max_score = 81
                     
                     button_text = f"{i+1}. {name} - {score}/{max_score}"
                     
@@ -221,7 +219,7 @@ async def cmd_results(message: Message):
                         if len(row) >= 11:
                             name = row[3] if row[3] else f"Student {i}"
                             score = row[7] if len(row) > 7 else "0"
-                            max_score = row[8] if len(row) > 8 else str(sum(q['points'] for q in questions))
+                            max_score = "81"
                             percentage = row[9] if len(row) > 9 else "0%"
                             
                             stats_text += f"{i}. <b>{name}</b> - {score}/{max_score} ({percentage})\n"
@@ -744,6 +742,7 @@ async def view_student_details(callback: CallbackQuery):
         if 0 <= test_index < len(data):
             test_data = data[test_index]
             student_name = test_data.get('name', f'Student {test_index+1}')
+            max_score = 81
             
             info_msg = f"""👨‍🎓 <b>ПОЛНЫЙ ОТЧЕТ - {student_name}</b>
 
@@ -754,7 +753,7 @@ async def view_student_details(callback: CallbackQuery):
 • Класс/Возраст: {test_data.get('form_age', 'Не указано')}
 
 🏆 <b>Результаты:</b>
-• Баллы: {test_data.get('score', 0)}/{test_data.get('max_score', sum(q['points'] for q in questions))}
+• Баллы: {test_data.get('score', 0)}/{max_score}
 • Процент: {test_data.get('percentage', 0):.1f}%
 • Уровень: {test_data.get('level', 'Unknown')}
 • Вопросов отвечено: {len(test_data.get('all_answers', []))}/53
@@ -844,19 +843,20 @@ async def finish_test(user_id, time_up=False):
             pass
     
     total_score = session["score"]
-    max_score = sum(q['points'] for q in questions)
+    max_score = 81
     percentage = (total_score / max_score * 100) if max_score > 0 else 0
     
-    if total_score >= 90:
+    # Шкала уровней согласно таблице
+    if total_score > 80:
+        level = "Proficiency"
+    elif total_score >= 65:
         level = "Advanced"
-    elif total_score >= 75:
+    elif total_score >= 45:
         level = "Upper-Intermediate"
-    elif total_score >= 60:
+    elif total_score >= 25:
         level = "Intermediate"
-    elif total_score >= 40:
-        level = "Pre-Intermediate"
     else:
-        level = "Elementary"
+        level = "Pre-Intermediate"
     
     session["level"] = level
     session["max_score"] = max_score
@@ -866,6 +866,7 @@ async def finish_test(user_id, time_up=False):
 • Score: <b>{total_score}/{max_score}</b> points
 • Percentage: <b>{percentage:.1f}%</b>
 • Wrong answers: <b>{len(session.get('wrong_answers', []))}</b>
+• Level: <b>{level}</b>
 """
     
     if time_up:
@@ -982,8 +983,10 @@ async def main():
     print("🤖 ENGLISH TEST BOT - ADVANCED VERSION")
     print("=" * 60)
     print(f"✅ Questions: {len(questions)}")
+    print(f"✅ Max score: 81")
     print(f"✅ Teacher ID: {TEACHER_ID}")
     print("=" * 60)
+    print("🏆 Levels: Pre-Int → Int → Upper Int → Advanced → Proficiency")
     print("🎯 Бот работает 24/7 на Railway!")
     print("=" * 60)
     
